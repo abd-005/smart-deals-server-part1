@@ -104,6 +104,46 @@ async function run() {
       res.send(result);
     });
 
+     // Get specific
+
+    app.get("/bids/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await BidCollections.findOne(query);
+
+      res.send(result);
+    });
+
+    // POST || Create
+    app.post("/bids", async (req, res) => {
+      const newProduct = req.body;
+
+      const result = await BidCollections.insertOne(newProduct);
+
+      res.send(result);
+    });
+
+    // DELETE
+
+    app.delete("bids/:id", async (req, res) => {
+      const id = req.params.id;
+
+      const query = { _id: new ObjectId(id) };
+      const result = await BidCollections.deleteOne(query);
+      res.send(result);
+    });
+
+    //UPDATE
+    app.patch("/bids/:id", async (req, res) => {
+      const id = req.params.id;
+      const updatedUser = req.body;
+      const query = { _id: new ObjectId(id) };
+      const update = {
+        $set: { updatedUser },
+      };
+      const result = await BidCollections.updateOne(query, update);
+    });
+
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
