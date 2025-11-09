@@ -1,6 +1,6 @@
-const express = require('express');
-const cors = require('cors');
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const express = require("express");
+const cors = require("cors");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -8,19 +8,20 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-const uri = "mongodb+srv://smartdbUser:Yo7Gxk2kFetGZWbc@cluster0.ljdyez8.mongodb.net/?appName=Cluster0";
+const uri =
+  "mongodb+srv://smartdbUser:Yo7Gxk2kFetGZWbc@cluster0.ljdyez8.mongodb.net/?appName=Cluster0";
 
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
     strict: true,
     deprecationErrors: true,
-  }
+  },
 });
 
-app.get('/', (req, res)=>{
-    res.send('Smart server is running')
-})
+app.get("/", (req, res) => {
+  res.send("Smart server is running");
+});
 
 async function run() {
   try {
@@ -28,62 +29,90 @@ async function run() {
 
     const database = client.db("smart_user");
     const smartCollections = database.collection("smartCollections");
+    const BidCollections = database.collection("bids");
 
     // GET || Read
-    app.get('/users', async(req,res)=>{
-        const cursor = smartCollections.find({});
-        const result = await cursor.toArray();
-        res.send(result);
-    })
+    app.get("/products", async (req, res) => {
+      // const projectFields = {title:1, price_min:1 , price_max: 1, image:1}
+      // const cursor = smartCollections.find().sort({price_min: 1}).limit(3).skip(5).project(projectFields);
+      const email = req.query.email;
+      console.log(req.query);
+      const query = {};
+      if (email) {
+        query.email = email;
+      }
+      const cursor = smartCollections.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
 
     // Get specific
 
-    app.get('/users:id', async(req,res)=>{
-        const id = req.params.id;
-        const query = {_id: new ObjectId(id)}
-        const result = await smartCollections.findOne(query);
+    app.get("/products/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await smartCollections.findOne(query);
 
-        res.send(result);
-    })
+      res.send(result);
+    });
 
     // POST || Create
-    app.post('/users', async(req,res)=>{
-        const newProduct = req.body;
+    app.post("/products", async (req, res) => {
+      const newProduct = req.body;
 
-        const result = await smartCollections.insertOne(newProduct);
+      const result = await smartCollections.insertOne(newProduct);
 
-        res.send(result);
-    })
+      res.send(result);
+    });
 
     // DELETE
-    
-    app.delete('users/:id', async(req,res)=>{
-        const id = req.params.id;
 
-        const query = {_id: new ObjectId(id)};
-        const result = await smartCollections.deleteOne(query);
-        res.send(result)
-    }) 
+    app.delete("products/:id", async (req, res) => {
+      const id = req.params.id;
+
+      const query = { _id: new ObjectId(id) };
+      const result = await smartCollections.deleteOne(query);
+      res.send(result);
+    });
 
     //UPDATE
-    app.patch('/users/:id', async(req, res)=>{
-        const id = req.params.id;
-        const updatedUser = req.body; 
-        const query = {_id: new ObjectId(id)};
-        const update = {
-        $set:{updatedUser}
-        }
-        const result= await smartCollections.updateOne(query, update);
-    })
+    app.patch("/products/:id", async (req, res) => {
+      const id = req.params.id;
+      const updatedUser = req.body;
+      const query = { _id: new ObjectId(id) };
+      const update = {
+        $set: { updatedUser },
+      };
+      const result = await smartCollections.updateOne(query, update);
+    });
+
+    ///////////////////////////////////////////////
+
+    // BID related code
+
+    // get
+
+    app.get("/bids", async (req, res) => {
+      const email = req.query.email;
+      console.log(req.query);
+      const query = {};
+      if (email) {
+        query.buyer_email = email;
+      }
+      const cursor = BidCollections.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
 
     await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
-  } finally { 
-    
+    console.log(
+      "Pinged your deployment. You successfully connected to MongoDB!"
+    );
+  } finally {
   }
 }
 run().catch(console.dir);
 
-app.listen(port, ()=>{
-    console.log(`Smart server is running on port: ${port}`)
-})
+app.listen(port, () => {
+  console.log(`Smart server is running on port: ${port}`);
+});
